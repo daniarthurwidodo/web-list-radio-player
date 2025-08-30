@@ -16,8 +16,8 @@ export async function fetchRadioStations(): Promise<RadioStation[]> {
     for (let i = 1; i < lines.length; i++) {
       const values = lines[i].split(',').map(v => v.replace(/"/g, ''))
       
-      if (values.length >= 3 && values[0] && values[1] && values[2]) {
-        const stationKey = `${values[0]}-${values[1]}`
+      if (values.length >= 4 && values[0] && values[2] && values[3]) {
+        const stationKey = `${values[0]}-${values[2]}-${values[3]}`
         
         if (!seenStations.has(stationKey)) {
           seenStations.add(stationKey)
@@ -25,11 +25,11 @@ export async function fetchRadioStations(): Promise<RadioStation[]> {
           stations.push({
             id: `station-${i}`,
             name: values[0] || 'Unknown Station',
-            frequency: values[1] || 'Unknown Frequency',
-            link: values[2] || '',
-            image: values[3] || undefined,
-            genre: 'Radio',
-            country: values[1]?.includes('Makassar') ? 'Indonesia' : 'Unknown'
+            genre: values[1] || 'General',
+            frequency: values[2] || 'Unknown Frequency',
+            link: values[3] || '',
+            image: values[4] || undefined,
+            country: values[2]?.includes('Makassar') ? 'Indonesia' : 'Unknown'
           })
         }
       }

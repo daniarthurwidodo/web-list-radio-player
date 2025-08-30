@@ -78,13 +78,31 @@ export default function PlayerBar() {
                 </div>
               </div>
             )}
+
+            {/* Mobile Ads Section */}
+            <div className="bg-gradient-to-r from-green-500/20 to-blue-500/20 backdrop-blur-sm rounded-lg p-2 mx-2 mb-2 border border-green-500/30">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <div className="w-5 h-5 bg-green-500 rounded flex items-center justify-center shrink-0">
+                    <span className="text-white text-xs font-bold">AD</span>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-white text-xs font-medium truncate">🎮 New Game - Download Now!</p>
+                    <p className="text-gray-300 text-xs truncate">Free to play</p>
+                  </div>
+                </div>
+                <button className="bg-green-500 text-white px-2 py-1 rounded text-xs font-medium hover:bg-green-600 transition-colors shrink-0">
+                  Play
+                </button>
+              </div>
+            </div>
           </>
         )}
       </div>
 
       {/* Desktop Layout */}
       <div className="hidden md:flex h-20 px-4 items-center justify-between">
-        <div className="flex items-center gap-4 min-w-0 w-1/3">
+        <div className="flex items-center gap-4 min-w-0 w-1/4">
           {currentStation && (
             <>
               <div className="w-12 h-12 bg-gray-700 rounded flex items-center justify-center shrink-0">
@@ -102,7 +120,23 @@ export default function PlayerBar() {
           )}
         </div>
 
-        <div className="flex flex-col items-center gap-2 w-1/3">
+        {/* Desktop Ads Section */}
+        <div className="flex items-center gap-3 min-w-0 w-1/3">
+          <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 backdrop-blur-sm rounded-lg px-3 py-2 border border-yellow-500/30 flex items-center gap-2 min-w-0 flex-1">
+            <div className="w-6 h-6 bg-yellow-500 rounded flex items-center justify-center shrink-0">
+              <span className="text-black text-xs font-bold">AD</span>
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-white text-xs font-medium truncate">🍕 Pizza Palace - Order Now!</p>
+              <p className="text-gray-300 text-xs truncate">30% off your first order</p>
+            </div>
+            <button className="bg-yellow-500 text-black px-2 py-1 rounded text-xs font-medium hover:bg-yellow-600 transition-colors shrink-0">
+              Order
+            </button>
+          </div>
+        </div>
+
+        <div className="flex flex-col items-center gap-2 w-1/4">
           <div className="flex items-center gap-4">
             <button className="text-gray-400 hover:text-white transition-colors">
               <SkipBack size={20} />
@@ -128,7 +162,7 @@ export default function PlayerBar() {
           )}
         </div>
 
-        <div className="flex items-center gap-2 w-1/3 justify-end">
+        <div className="flex items-center gap-2 w-1/4 justify-end">
           <button
             onClick={toggleMute}
             className="text-gray-400 hover:text-white transition-colors"

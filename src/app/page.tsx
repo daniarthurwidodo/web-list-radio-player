@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import SearchBar from '@/components/SearchBar'
 import StationCard from '@/components/StationCard'
-import AdsModal from '@/components/AdsModal'
 import { fetchRadioStations } from '@/lib/data-fetcher'
 import { RadioStation } from '@/types/radio'
 
@@ -12,7 +11,9 @@ export default function Home() {
   const [filteredStations, setFilteredStations] = useState<RadioStation[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
-  const [showAdsModal, setShowAdsModal] = useState(true)
+  const [selectedGenre, setSelectedGenre] = useState<string>('All')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage] = useState(10)
 
   useEffect(() => {
     const loadStations = async () => {
@@ -30,19 +31,67 @@ export default function Home() {
     loadStations()
   }, [])
 
+  const applyFilters = () => {
+    let filtered = stations
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      filtered = filtered.filter(station => 
+        station.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        station.frequency.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (station.country && station.country.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (station.genre && station.genre.toLowerCase().includes(searchQuery.toLowerCase()))
+      )
+    }
+
+    // Apply genre filter
+    if (selectedGenre !== 'All') {
+      filtered = filtered.filter(station => 
+        station.genre && station.genre.toLowerCase().includes(selectedGenre.toLowerCase())
+      )
+    }
+
+    setFilteredStations(filtered)
+    setCurrentPage(1) // Reset to first page when filters change
+  }
+
   const handleSearch = (query: string) => {
     setSearchQuery(query)
-    if (!query.trim()) {
-      setFilteredStations(stations)
-    } else {
-      const filtered = stations.filter(station => 
-        station.name.toLowerCase().includes(query.toLowerCase()) ||
-        station.frequency.toLowerCase().includes(query.toLowerCase()) ||
-        (station.country && station.country.toLowerCase().includes(query.toLowerCase()))
-      )
-      setFilteredStations(filtered)
-    }
   }
+
+  const handleGenreFilter = (genre: string) => {
+    setSelectedGenre(genre)
+  }
+
+  useEffect(() => {
+    applyFilters()
+  }, [searchQuery, selectedGenre, stations])
+
+  // Get unique genres from stations
+  const getUniqueGenres = (): string[] => {
+    const genresSet = new Set<string>()
+    genresSet.add('All')
+    
+    stations.forEach(station => {
+      if (station.genre) {
+        // Handle comma-separated genres
+        const genres = station.genre.split(',').map(g => g.trim())
+        genres.forEach(genre => {
+          if (genre) {
+            genresSet.add(genre.charAt(0).toUpperCase() + genre.slice(1))
+          }
+        })
+      }
+    })
+    
+    return Array.from(genresSet)
+  }
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredStations.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedStations = filteredStations.slice(startIndex, endIndex)
 
   return (
     <div id="app-container" className="p-4 md:p-8">
@@ -65,21 +114,40 @@ export default function Home() {
 
         {/* Ads Section */}
         <section id="ads-section" className="mb-6">
-          <div className="bg-gradient-to-r from-gray-800/60 to-gray-700/60 rounded-lg p-4 border border-gray-700">
+          <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-sm rounded-lg p-4 border border-blue-500/30">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-yellow-500 rounded flex items-center justify-center">
-                  <span className="text-black text-sm font-bold">AD</span>
+                <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-sm font-bold">AD</span>
                 </div>
                 <div>
-                  <p className="text-white text-sm font-medium">Advertisement Space</p>
-                  <p className="text-gray-400 text-xs">Premium radio experience</p>
+                  <p className="text-white text-sm font-medium">🎧 Premium Headphones - 50% OFF</p>
+                  <p className="text-gray-300 text-xs">Limited time offer • Free shipping</p>
                 </div>
               </div>
-              <button className="bg-green-400 text-black px-4 py-2 rounded-full text-sm font-medium hover:bg-green-500 transition-colors">
-                Learn More
+              <button className="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-blue-600 transition-colors">
+                Shop Now
               </button>
             </div>
+          </div>
+        </section>
+
+        {/* Genre Filter Section */}
+        <section id="genre-filter-section" className="mb-6">
+          <div className="flex flex-wrap gap-2">
+            {getUniqueGenres().map((genre) => (
+              <button
+                key={genre}
+                onClick={() => handleGenreFilter(genre)}
+                className={`px-3 py-1.5 text-sm font-medium rounded-full transition-colors ${
+                  selectedGenre === genre
+                    ? 'bg-green-400 text-black'
+                    : 'bg-gray-800/60 text-gray-300 hover:bg-gray-700/60 hover:text-white'
+                }`}
+              >
+                {genre}
+              </button>
+            ))}
           </div>
         </section>
 
@@ -98,12 +166,51 @@ export default function Home() {
             <div id="loading-spinner" className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-400"></div>
             </div>
-          ) : filteredStations.length > 0 ? (
-            <div id="stations-list" className="space-y-2">
-              {filteredStations.map((station) => (
-                <StationCard key={station.id} station={station} />
-              ))}
-            </div>
+          ) : paginatedStations.length > 0 ? (
+            <>
+              <div id="stations-list" className="space-y-2">
+                {paginatedStations.map((station) => (
+                  <StationCard key={station.id} station={station} />
+                ))}
+              </div>
+              
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div id="pagination" className="flex items-center justify-center gap-2 mt-6">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-2 text-sm font-medium rounded-lg bg-gray-800/60 text-gray-300 hover:bg-gray-700/60 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Previous
+                  </button>
+                  
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`w-10 h-10 text-sm font-medium rounded-lg transition-colors ${
+                          currentPage === page
+                            ? 'bg-green-400 text-black'
+                            : 'bg-gray-800/60 text-gray-300 hover:bg-gray-700/60 hover:text-white'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-2 text-sm font-medium rounded-lg bg-gray-800/60 text-gray-300 hover:bg-gray-700/60 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </>
           ) : (
             <div id="empty-state" className="text-center py-8">
               <div className="text-4xl mb-3">📻</div>
@@ -118,12 +225,6 @@ export default function Home() {
         </section>
 
       </div>
-
-      {/* Ads Modal */}
-      <AdsModal 
-        isOpen={showAdsModal} 
-        onClose={() => setShowAdsModal(false)} 
-      />
     </div>
   )
 }
