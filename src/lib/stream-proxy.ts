@@ -4,40 +4,37 @@ export function getProxiedStreamUrl(originalUrl: string): string {
     return originalUrl
   }
 
-  // For HTTP URLs, use a CORS proxy service
-  const proxies = [
-    'https://cors-anywhere.herokuapp.com/',
-    'https://api.allorigins.win/raw?url=',
-    'https://corsproxy.io/?'
-  ]
-
-  // Use the first available proxy
-  return `${proxies[0]}${encodeURIComponent(originalUrl)}`
+  // Use our server-side proxy for HTTP URLs
+  return `/api/proxy?url=${encodeURIComponent(originalUrl)}`
 }
 
 export function getStreamUrlWithFallbacks(originalUrl: string): string[] {
   const urls: string[] = []
 
-  // Try original URL first (in case it works)
-  urls.push(originalUrl)
-
-  // If HTTP, add HTTPS version attempt
-  if (originalUrl.startsWith('http://')) {
-    urls.push(originalUrl.replace('http://', 'https://'))
+  // If HTTPS, try original first
+  if (originalUrl.startsWith('https://')) {
+    urls.push(originalUrl)
+    return urls
   }
 
-  // Add proxy versions
+  // For HTTP URLs, use our server-side proxy first
+  urls.push(`/api/proxy?url=${encodeURIComponent(originalUrl)}`)
+
+  // Try HTTPS version as fallback
   if (originalUrl.startsWith('http://')) {
-    const proxies = [
-      'https://cors-anywhere.herokuapp.com/',
-      'https://api.allorigins.win/raw?url=',
-      'https://corsproxy.io/?'
-    ]
-    
-    proxies.forEach(proxy => {
-      urls.push(`${proxy}${encodeURIComponent(originalUrl)}`)
-    })
+    const httpsUrl = originalUrl.replace('http://', 'https://')
+    urls.push(httpsUrl)
   }
+
+  // Add external CORS proxies as last resort
+  const externalProxies = [
+    'https://cors-anywhere.herokuapp.com/',
+    'https://api.allorigins.win/raw?url='
+  ]
+  
+  externalProxies.forEach(proxy => {
+    urls.push(`${proxy}${encodeURIComponent(originalUrl)}`)
+  })
 
   return urls
 }
