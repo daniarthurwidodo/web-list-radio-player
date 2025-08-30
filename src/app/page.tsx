@@ -1,103 +1,115 @@
-import Image from "next/image";
+'use client'
+
+import { useState, useEffect } from 'react'
+import SearchBar from '@/components/SearchBar'
+import StationCard from '@/components/StationCard'
+import { fetchRadioStations } from '@/lib/data-fetcher'
+import { RadioStation } from '@/types/radio'
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [stations, setStations] = useState<RadioStation[]>([])
+  const [filteredStations, setFilteredStations] = useState<RadioStation[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  useEffect(() => {
+    const loadStations = async () => {
+      try {
+        const data = await fetchRadioStations()
+        setStations(data)
+        setFilteredStations(data)
+      } catch (error) {
+        console.error('Failed to load stations:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadStations()
+  }, [])
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query)
+    if (!query.trim()) {
+      setFilteredStations(stations)
+    } else {
+      const filtered = stations.filter(station => 
+        station.name.toLowerCase().includes(query.toLowerCase()) ||
+        station.frequency.toLowerCase().includes(query.toLowerCase()) ||
+        (station.country && station.country.toLowerCase().includes(query.toLowerCase()))
+      )
+      setFilteredStations(filtered)
+    }
+  }
+
+  return (
+    <div className="p-8">
+      <div className="max-w-6xl mx-auto">
+        <header className="mb-8">
+          <h1 className="text-4xl font-bold text-white mb-2">Radio Stations</h1>
+          <p className="text-gray-400 mb-6">Discover and listen to radio stations from around the world</p>
+          <SearchBar onSearch={handleSearch} />
+        </header>
+
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-semibold text-white">
+              {searchQuery ? `Search results for "${searchQuery}"` : 'All Stations'}
+            </h2>
+            <span className="text-gray-400 text-sm">
+              {filteredStations.length} station{filteredStations.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+          
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-400"></div>
+            </div>
+          ) : filteredStations.length > 0 ? (
+            <div className="grid gap-2">
+              {filteredStations.map((station) => (
+                <StationCard key={station.id} station={station} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-400 text-lg mb-2">
+                {searchQuery ? 'No stations found' : 'No stations available'}
+              </p>
+              <p className="text-gray-500 text-sm">
+                {searchQuery ? 'Try a different search term' : 'Check back later for more stations'}
+              </p>
+            </div>
+          )}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        <section className="mt-12">
+          <h2 className="text-2xl font-semibold text-white mb-4">Features</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-gray-800/40 p-6 rounded-lg">
+              <div className="text-3xl mb-3">🎵</div>
+              <h3 className="text-lg font-semibold text-white mb-2">Live Streaming</h3>
+              <p className="text-gray-400 text-sm">
+                Listen to live radio streams with high-quality audio
+              </p>
+            </div>
+            <div className="bg-gray-800/40 p-6 rounded-lg">
+              <div className="text-3xl mb-3">🔍</div>
+              <h3 className="text-lg font-semibold text-white mb-2">Smart Search</h3>
+              <p className="text-gray-400 text-sm">
+                Find stations by name, frequency, or location
+              </p>
+            </div>
+            <div className="bg-gray-800/40 p-6 rounded-lg">
+              <div className="text-3xl mb-3">🎛️</div>
+              <h3 className="text-lg font-semibold text-white mb-2">Player Controls</h3>
+              <p className="text-gray-400 text-sm">
+                Full control with play, pause, and volume controls
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
     </div>
-  );
+  )
 }
