@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import SearchBar from '@/components/SearchBar'
 import StationCard from '@/components/StationCard'
+import AdsModal from '@/components/AdsModal'
 import { fetchRadioStations } from '@/lib/data-fetcher'
 import { RadioStation } from '@/types/radio'
 
@@ -11,6 +12,7 @@ export default function Home() {
   const [filteredStations, setFilteredStations] = useState<RadioStation[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
+  const [showAdsModal, setShowAdsModal] = useState(true)
 
   useEffect(() => {
     const loadStations = async () => {
@@ -43,37 +45,69 @@ export default function Home() {
   }
 
   return (
-    <div className="p-8">
-      <div className="max-w-6xl mx-auto">
-        <header className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Radio Stations</h1>
-          <p className="text-gray-400 mb-6">Discover and listen to radio stations from around the world</p>
-          <SearchBar onSearch={handleSearch} />
+    <div id="app-container" className="p-4 md:p-8">
+      <div id="main-content" className="max-w-4xl mx-auto">
+        {/* Header with App Title and Search */}
+        <header id="app-header" className="mb-6">
+          <div id="header-brand" className="flex items-center gap-3 mb-4">
+            <div id="app-logo" className="w-10 h-10 bg-green-400 rounded-lg flex items-center justify-center">
+              <span className="text-black text-xl font-bold">📻</span>
+            </div>
+            <div id="app-title">
+              <h1 className="text-2xl md:text-3xl font-bold text-white">Web Radio Player</h1>
+              <p className="text-gray-400 text-sm">Discover live radio stations</p>
+            </div>
+          </div>
+          <div id="search-container">
+            <SearchBar onSearch={handleSearch} />
+          </div>
         </header>
 
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-semibold text-white">
-              {searchQuery ? `Search results for "${searchQuery}"` : 'All Stations'}
+        {/* Ads Section */}
+        <section id="ads-section" className="mb-6">
+          <div className="bg-gradient-to-r from-gray-800/60 to-gray-700/60 rounded-lg p-4 border border-gray-700">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-yellow-500 rounded flex items-center justify-center">
+                  <span className="text-black text-sm font-bold">AD</span>
+                </div>
+                <div>
+                  <p className="text-white text-sm font-medium">Advertisement Space</p>
+                  <p className="text-gray-400 text-xs">Premium radio experience</p>
+                </div>
+              </div>
+              <button className="bg-green-400 text-black px-4 py-2 rounded-full text-sm font-medium hover:bg-green-500 transition-colors">
+                Learn More
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Station Results */}
+        <section id="stations-section" className="mb-8">
+          <div id="stations-header" className="flex items-center justify-between mb-4">
+            <h2 id="stations-title" className="text-lg md:text-xl font-semibold text-white">
+              {searchQuery ? `Results for "${searchQuery}"` : 'Stations'}
             </h2>
-            <span className="text-gray-400 text-sm">
-              {filteredStations.length} station{filteredStations.length !== 1 ? 's' : ''}
+            <span id="stations-count" className="text-gray-400 text-xs md:text-sm">
+              {filteredStations.length} found
             </span>
           </div>
           
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-400"></div>
+            <div id="loading-spinner" className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-400"></div>
             </div>
           ) : filteredStations.length > 0 ? (
-            <div className="grid gap-2">
+            <div id="stations-list" className="space-y-2">
               {filteredStations.map((station) => (
                 <StationCard key={station.id} station={station} />
               ))}
             </div>
           ) : (
-            <div className="text-center py-12">
-              <p className="text-gray-400 text-lg mb-2">
+            <div id="empty-state" className="text-center py-8">
+              <div className="text-4xl mb-3">📻</div>
+              <p className="text-gray-400 text-base mb-2">
                 {searchQuery ? 'No stations found' : 'No stations available'}
               </p>
               <p className="text-gray-500 text-sm">
@@ -81,35 +115,15 @@ export default function Home() {
               </p>
             </div>
           )}
-        </div>
-
-        <section className="mt-12">
-          <h2 className="text-2xl font-semibold text-white mb-4">Features</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-gray-800/40 p-6 rounded-lg">
-              <div className="text-3xl mb-3">🎵</div>
-              <h3 className="text-lg font-semibold text-white mb-2">Live Streaming</h3>
-              <p className="text-gray-400 text-sm">
-                Listen to live radio streams with high-quality audio
-              </p>
-            </div>
-            <div className="bg-gray-800/40 p-6 rounded-lg">
-              <div className="text-3xl mb-3">🔍</div>
-              <h3 className="text-lg font-semibold text-white mb-2">Smart Search</h3>
-              <p className="text-gray-400 text-sm">
-                Find stations by name, frequency, or location
-              </p>
-            </div>
-            <div className="bg-gray-800/40 p-6 rounded-lg">
-              <div className="text-3xl mb-3">🎛️</div>
-              <h3 className="text-lg font-semibold text-white mb-2">Player Controls</h3>
-              <p className="text-gray-400 text-sm">
-                Full control with play, pause, and volume controls
-              </p>
-            </div>
-          </div>
         </section>
+
       </div>
+
+      {/* Ads Modal */}
+      <AdsModal 
+        isOpen={showAdsModal} 
+        onClose={() => setShowAdsModal(false)} 
+      />
     </div>
   )
 }

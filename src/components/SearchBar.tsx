@@ -28,15 +28,15 @@ export default function SearchBar({ onSearch, placeholder = "Search radio statio
   }
 
   return (
-    <form onSubmit={handleSubmit} className="relative max-w-md">
+    <form onSubmit={handleSubmit} className="relative w-full max-w-md">
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
         <input
           type="text"
           value={query}
           onChange={handleChange}
           placeholder={placeholder}
-          className="w-full bg-gray-800 text-white pl-12 pr-12 py-3 rounded-full border border-gray-700 focus:border-gray-500 focus:outline-none transition-colors"
+          className="w-full bg-gray-800 text-white pl-10 pr-10 py-2.5 md:py-3 rounded-full border border-gray-700 focus:border-gray-500 focus:outline-none transition-colors text-sm md:text-base"
         />
         {query && (
           <button
@@ -44,7 +44,7 @@ export default function SearchBar({ onSearch, placeholder = "Search radio statio
             onClick={handleClear}
             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         )}
       </div>
