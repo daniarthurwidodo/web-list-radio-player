@@ -6,6 +6,7 @@ import { usePlayer } from '@/contexts/PlayerContext'
 export default function PlayerBar() {
   const { 
     isPlaying, 
+    isLoading,
     currentStation, 
     volume, 
     isMuted, 
@@ -48,8 +49,15 @@ export default function PlayerBar() {
                 <button
                   onClick={isPlaying ? pause : () => play()}
                   className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-black hover:scale-105 transition-transform"
+                  disabled={isLoading}
                 >
-                  {isPlaying ? <Pause size={14} /> : <Play size={14} />}
+                  {isLoading ? (
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-black"></div>
+                  ) : isPlaying ? (
+                    <Pause size={14} />
+                  ) : (
+                    <Play size={14} />
+                  )}
                 </button>
               </div>
             </div>
@@ -70,7 +78,14 @@ export default function PlayerBar() {
               />
             </div>
             
-            {isPlaying && (
+            {isLoading ? (
+              <div className="text-center pb-2">
+                <div className="text-xs text-gray-400 flex items-center justify-center gap-2">
+                  <div className="animate-spin rounded-full h-2 w-2 border-b border-gray-400"></div>
+                  LOADING
+                </div>
+              </div>
+            ) : isPlaying && (
               <div className="text-center pb-2">
                 <div className="text-xs text-gray-400 flex items-center justify-center gap-2">
                   <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
@@ -145,9 +160,15 @@ export default function PlayerBar() {
             <button
               onClick={isPlaying ? pause : () => play()}
               className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-black hover:scale-105 transition-transform"
-              disabled={!currentStation}
+              disabled={!currentStation || isLoading}
             >
-              {isPlaying ? <Pause size={16} /> : <Play size={16} />}
+              {isLoading ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black"></div>
+              ) : isPlaying ? (
+                <Pause size={16} />
+              ) : (
+                <Play size={16} />
+              )}
             </button>
             
             <button className="text-gray-400 hover:text-white transition-colors">

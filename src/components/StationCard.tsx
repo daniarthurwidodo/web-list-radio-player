@@ -10,11 +10,12 @@ interface StationCardProps {
 }
 
 export default function StationCard({ station }: StationCardProps) {
-  const { currentStation, isPlaying, play, pause } = usePlayer()
+  const { currentStation, isPlaying, isLoading, play, pause } = usePlayer()
   const [imageError, setImageError] = useState(false)
   
   const isCurrentStation = currentStation?.id === station.id
   const isCurrentlyPlaying = isCurrentStation && isPlaying
+  const isCurrentlyLoading = isCurrentStation && isLoading
 
   const handlePlayPause = () => {
     if (isCurrentlyPlaying) {
@@ -46,9 +47,11 @@ export default function StationCard({ station }: StationCardProps) {
                 />
                 {/* Play/Pause overlay for image */}
                 <div className={`absolute inset-0 bg-black/70 rounded-lg flex items-center justify-center transition-opacity md:opacity-0 md:group-hover:opacity-100 ${
-                  isCurrentlyPlaying ? 'opacity-100' : 'opacity-80 md:opacity-0'
+                  isCurrentlyPlaying || isCurrentlyLoading ? 'opacity-100' : 'opacity-80 md:opacity-0'
                 }`}>
-                  {isCurrentlyPlaying ? (
+                  {isCurrentlyLoading ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  ) : isCurrentlyPlaying ? (
                     <Pause size={16} className="text-white md:w-5 md:h-5" />
                   ) : (
                     <Play size={16} className="text-white ml-0.5 md:w-5 md:h-5" />
@@ -62,9 +65,11 @@ export default function StationCard({ station }: StationCardProps) {
                 </div>
                 {/* Play/Pause overlay for fallback */}
                 <div className={`absolute inset-0 bg-black/70 rounded-lg flex items-center justify-center transition-opacity md:opacity-0 md:group-hover:opacity-100 ${
-                  isCurrentlyPlaying ? 'opacity-100' : 'opacity-80 md:opacity-0'
+                  isCurrentlyPlaying || isCurrentlyLoading ? 'opacity-100' : 'opacity-80 md:opacity-0'
                 }`}>
-                  {isCurrentlyPlaying ? (
+                  {isCurrentlyLoading ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  ) : isCurrentlyPlaying ? (
                     <Pause size={16} className="text-white md:w-5 md:h-5" />
                   ) : (
                     <Play size={16} className="text-white ml-0.5 md:w-5 md:h-5" />
@@ -75,9 +80,14 @@ export default function StationCard({ station }: StationCardProps) {
           </div>
           
           <div className="min-w-0 flex-1">
-            <h3 className={`font-medium truncate text-sm md:text-base ${isCurrentStation ? 'text-green-400' : 'text-white'}`}>
-              {station.name}
-            </h3>
+            <div className="flex items-center gap-2">
+              <h3 className={`font-medium truncate text-sm md:text-base ${isCurrentStation ? 'text-green-400' : 'text-white'}`}>
+                {station.name}
+              </h3>
+              {isCurrentlyLoading && (
+                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-green-400"></div>
+              )}
+            </div>
             <p className="text-gray-400 text-xs md:text-sm truncate">
               {station.frequency}
             </p>
@@ -107,8 +117,11 @@ export default function StationCard({ station }: StationCardProps) {
               handlePlayPause()
             }}
             className="md:hidden w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center hover:bg-gray-600 transition-colors pointer-events-auto"
+            disabled={isCurrentlyLoading}
           >
-            {isCurrentlyPlaying ? (
+            {isCurrentlyLoading ? (
+              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+            ) : isCurrentlyPlaying ? (
               <Pause size={14} className="text-white" />
             ) : (
               <Play size={14} className="text-white ml-0.5" />

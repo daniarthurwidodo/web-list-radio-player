@@ -19,12 +19,14 @@ type PlayerAction =
   | { type: 'PLAY'; payload?: RadioStation }
   | { type: 'PAUSE' }
   | { type: 'STOP' }
+  | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_VOLUME'; payload: number }
   | { type: 'TOGGLE_MUTE' }
   | { type: 'SET_STATION'; payload: RadioStation }
 
 const initialState: PlayerState = {
   isPlaying: false,
+  isLoading: false,
   currentStation: null,
   volume: 0.7,
   isMuted: false
@@ -36,18 +38,26 @@ function playerReducer(state: PlayerState, action: PlayerAction): PlayerState {
       return {
         ...state,
         isPlaying: true,
+        isLoading: false,
         currentStation: action.payload || state.currentStation
       }
     case 'PAUSE':
       return {
         ...state,
-        isPlaying: false
+        isPlaying: false,
+        isLoading: false
       }
     case 'STOP':
       return {
         ...state,
         isPlaying: false,
+        isLoading: false,
         currentStation: null
+      }
+    case 'SET_LOADING':
+      return {
+        ...state,
+        isLoading: action.payload
       }
     case 'SET_VOLUME':
       return {
@@ -78,6 +88,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const tryPlayWithFallbacks = async (station: RadioStation) => {
     if (!audioRef.current) return
 
+    dispatch({ type: 'SET_LOADING', payload: true })
     const fallbackUrls = getStreamUrlWithFallbacks(station.link)
     
     for (let i = 0; i < fallbackUrls.length; i++) {
@@ -90,6 +101,15 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
           console.warn(`Failed to load stream: ${fallbackUrls[i]}`)
         }
         
+        // Add loading event listeners
+        audioRef.current.onloadstart = () => {
+          dispatch({ type: 'SET_LOADING', payload: true })
+        }
+        
+        audioRef.current.oncanplay = () => {
+          dispatch({ type: 'SET_LOADING', payload: false })
+        }
+        
         await audioRef.current.play()
         console.log(`Successfully loaded stream: ${fallbackUrls[i]}`)
         dispatch({ type: 'PLAY', payload: station })
@@ -98,7 +118,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         console.warn(`Failed to play stream ${i + 1}/${fallbackUrls.length}:`, error)
         if (i === fallbackUrls.length - 1) {
           console.error('All stream URLs failed to load')
-          // Optionally dispatch error state
+          dispatch({ type: 'SET_LOADING', payload: false })
         }
       }
     }
@@ -111,6 +131,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     
     const currentStation = station || state.currentStation
     if (currentStation) {
+      dispatch({ type: 'SET_LOADING', payload: true })
+      
       if (audioRef.current && audioRef.current.src !== currentStation.link) {
         tryPlayWithFallbacks(currentStation)
       } else if (audioRef.current) {

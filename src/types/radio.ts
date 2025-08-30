@@ -10,6 +10,7 @@ export interface RadioStation {
 
 export interface PlayerState {
   isPlaying: boolean
+  isLoading: boolean
   currentStation: RadioStation | null
   volume: number
   isMuted: boolean
