@@ -176,9 +176,16 @@ export default function PlayerBar() {
             </button>
           </div>
           
-          {currentStation && isPlaying && (
+          {currentStation && (
             <div className="text-xs text-gray-400">
-              🔴 LIVE
+              {isLoading ? (
+                <div className="flex items-center gap-1">
+                  <div className="animate-spin rounded-full h-2 w-2 border-b border-gray-400"></div>
+                  LOADING
+                </div>
+              ) : isPlaying ? (
+                <div>🔴 LIVE</div>
+              ) : null}
             </div>
           )}
         </div>
